@@ -97,6 +97,47 @@ app.get('/api', function(req, res) {
 
 });
 
+app.get('/api/transit', function(req, res) {
+    console.log("/api");
+
+    var reqPOIS = req.query.loc;
+    console.log(reqPOIS);
+
+    var POIS = reqPOIS.split("|");
+
+    console.log(POIS);
+
+
+
+    async.waterfall([
+        function(callback) {
+            var number = createPermute(POIS.length);
+            callback(null, number);
+        },
+        function(arg1, callback) {
+            // arg1 现在是 'one'， arg2 现在是 'two' 
+            console.log(arg1);
+            var permutation = permute(arg1);
+            callback(null, permutation);
+        },
+        function(arg1, callback) {
+            // arg1 现在是 'three' 
+            var list = accessDistanceApi(res,arg1,POIS);
+            console.log(arg1);
+            callback(null, list);
+        }
+    ], function (err, result) {
+        console.log(result);
+        //执行的任务中方法回调err参数时，将被传递至本方法的err参数
+        // 参数result为最后一个方法的回调结果'done'     
+    });
+    
+
+
+
+});
+
+
 app.get('/insert', function(req,res) {
   console.log("/insert");
   
@@ -285,13 +326,16 @@ function calculateShortestPath(pathList,durationlist,POIS){
     finalmarkers[i]=POIS[temp];
 }
 console.log("POIS", ""+finalmarkers);
-return finalmarkers;
 
+var finalDurationIntList = [POIS.length];
+for(var i =0 ; i<POIS.length-1;i++){
 
-
-
-
-  
+    //0 to 2 02341
+finalDurationIntList[i] = durationlist[parseInt(shortestTemp.substring(i,i+1))] [parseInt(shortestTemp.substring(i+1,i+2))];
 }
 
+var finalresult = finalmarkers.toString()+"|"+shortest_path+"|"+finalDurationIntList.toString();
 
+return finalresult;
+  
+}
