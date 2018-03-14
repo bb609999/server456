@@ -152,6 +152,21 @@ MongoClient.connect(url, function(err, db) {
 
 });
 
+app.post('/insert', function(req,res) {
+    console.log("/insert");
+    console.log("req.body = "+req.body);
+    
+  MongoClient.connect(url,req.body, function(err, db) {
+      assert.equal(null, err);
+      console.log("connected to db");
+      insertDocument(db, function() {
+          console.log('insert done!');
+          db.close();
+      });
+  });
+  
+  });
+
 
 function insertDocument(db, callback) {
     db.collection('schedules').insertOne( {
@@ -161,7 +176,7 @@ function insertDocument(db, callback) {
         "stock" : 0
     }, function(err, result) {
         assert.equal(err, null);
-        console.log("Inserted a document into the books collection.");
+        console.log("Inserted a document into the schedule collection.");
         callback(result);
     });
 };
@@ -335,6 +350,10 @@ finalDurationIntList[i] = durationlist[parseInt(shortestTemp.substring(i,i+1))] 
 }
 
 var finalresult = finalmarkers.toString()+"|"+shortest_path+"|"+finalDurationIntList.toString();
+
+if(!shortest_path){
+    return "No Result";
+}
 
 return finalresult;
   
