@@ -15,6 +15,8 @@ var async = require('async');
 
 var url = "mongodb://bb609999:pkpk1234@ds139884.mlab.com:39884/bb609999";
 
+var APIKEY = "AIzaSyC-uFuq2rGcGB34hLLeHtZBPF92B5UtCOI"
+
 // Middleware that serves static files in the public folder
 // GET /index.html
 app.use(express.static('public'));
@@ -97,34 +99,52 @@ app.get('/api', function(req, res) {
 
 });
 
-app.get('/api/transit', function(req, res) {
+app.get('/api/place/openinghour', function(req, res) {
     console.log("/api");
 
-    var reqPOIS = req.query.loc;
-    console.log(reqPOIS);
+    var keyword = req.query.keyword;
+    var lat = req.query.lat;
+    var lng = req.query.lng;
+    console.log(req);
 
-    var POIS = reqPOIS.split("|");
+    
 
-    console.log(POIS);
+  //  var keyword = "孫中山紀念館";
+  //  var lat = 22.2819842;
+ //   var lng = 114.150816;
+
+    function myNew(next){
+        console.log("Im the one who initates callback");
+        next("nope", "success");
+    }
+    
+    
+    myNew(function(err, res){
+        console.log("I got back from callback",err, res);
+    });
 
 
 
     async.waterfall([
         function(callback) {
-            var number = createPermute(POIS.length);
-            callback(null, number);
+         //var place_id = accessOpenHourApi(keyword,lat,lng,res);
+
+         //setTimeout(getOpeningHour(place_id),3000);
+
+        accessOpenHourApi(keyword,lat,lng,res);
+
+
+            callback(null, "place_id");
         },
         function(arg1, callback) {
             // arg1 现在是 'one'， arg2 现在是 'two' 
             console.log(arg1);
-            var permutation = permute(arg1);
-            callback(null, permutation);
+            callback(null, "two");
         },
         function(arg1, callback) {
             // arg1 现在是 'three' 
-            var list = accessDistanceApi(res,arg1,POIS);
             console.log(arg1);
-            callback(null, list);
+            callback(null, "three");
         }
     ], function (err, result) {
         console.log(result);
@@ -181,6 +201,8 @@ function insertDocument(db, callback) {
     });
 };
 
+//API Duration
+///////////////////////////////////////////////////////
 function permute(str) {
 
     var ret = [];
@@ -234,7 +256,7 @@ function permute(str) {
         url += POIS[i]+"%7C";
     }
 
-    url += '&mode=transit&key=AIzaSyC-uFuq2rGcGB34hLLeHtZBPF92B5UtCOI';
+    url += '&mode=transit&key='+APIKEY;
 
     
     var req = https.get(url, function(res){
@@ -357,4 +379,109 @@ if(!shortest_path){
 
 return finalresult;
   
+}
+
+////////////////////////////////////
+//API Opening hour
+
+function accessOpenHourApi(keyword,lat,lng,response){
+    var address = "https://maps.googleapis.com/maps/api/place/radarsearch/json?keyword=";
+
+    address += keyword;
+
+    address+="&location=";
+    address+=lat+","+lng;
+    address+="&radius=10&key="+APIKEY;
+
+
+    console.log(address);
+
+
+  var address_encoded = encodeURI(address);
+
+
+
+
+    var req = https.get(address_encoded, function(res){
+        
+        var body = '';
+    
+        res.on('data', function(chunk){
+            console.log("Doing");
+            body += chunk;
+    
+        });
+        res.on('end', function(){
+
+            console.log("Got a response: ",body);
+
+            var JSONResponse = JSON.parse(body);
+            
+            console.log("Got a response: ", JSON.stringify(JSONResponse));
+
+            if(JSONResponse['status']=="INVALID_REQUEST")
+                {response.send("No Result");}else{
+
+            var place_id = JSONResponse['results'][0]['place_id'];
+
+            console.log("Got a response: ", place_id);
+
+            getOpeningHour(place_id,response);
+                }
+
+
+        });
+    }).on('error', function(e){ 
+         console.log("Got an error: ", e);
+    }).end();
+
+
+}
+
+function getOpeningHour(place_id,response){
+    var address = "https://maps.googleapis.com/maps/api/place/details/json?placeid=";
+
+    address += place_id;
+
+    address+="&key="+APIKEY;
+
+
+    console.log(address);
+
+
+
+    var req = https.get(address, function(res){
+        
+        var body = '';
+    
+        res.on('data', function(chunk){
+            console.log("Doing");
+            body += chunk;
+    
+        });
+        res.on('end', function(){
+
+            console.log("Got a response: ",body);
+
+            var JSONResponse = JSON.parse(body);
+            
+            console.log("Got a response: ", JSON.stringify(JSONResponse));
+
+            if(JSONResponse['result']){
+            var weekday_text = JSONResponse['result']['opening_hours']['weekday_text'];
+
+
+            weekday_text?response.send(weekday_text):response.send("No Result");
+
+
+            }else{
+             response.send("No Result");
+                                }
+            
+
+
+        });
+    }).on('error', function(e){ 
+         console.log("Got an error: ", e);
+    }).end();
 }
