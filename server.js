@@ -471,6 +471,7 @@ function getOpeningHour(place_id,response){
             var weekday_text = JSONResponse['result']['opening_hours']['weekday_text'];
 
 
+
             weekday_text?response.send(weekday_text):response.send("No Result");
 
 
