@@ -419,7 +419,7 @@ function accessOpenHourApi(keyword,lat,lng,response){
             
             console.log("Got a response: ", JSON.stringify(JSONResponse));
 
-            if(JSONResponse['status']=="INVALID_REQUEST")
+            if(JSONResponse['status']=="INVALID_REQUEST"||JSONResponse['status']=="ZERO_RESULTS")
                 {response.send("No Result");}else{
 
             var place_id = JSONResponse['results'][0]['place_id'];
@@ -467,7 +467,7 @@ function getOpeningHour(place_id,response){
             
             console.log("Got a response: ", JSON.stringify(JSONResponse));
 
-            if(JSONResponse['result']){
+            if(JSONResponse['result']['opening_hours']){
             var periods = JSONResponse['result']['opening_hours']['periods'];
 
             var openHourList = [7];
