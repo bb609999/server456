@@ -391,7 +391,7 @@ function accessOpenHourApi(keyword,lat,lng,response){
 
     address+="&location=";
     address+=lat+","+lng;
-    address+="&radius=10&key="+APIKEY;
+    address+="&radius=100&key="+APIKEY;
 
 
     console.log(address);
