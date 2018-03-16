@@ -468,11 +468,18 @@ function getOpeningHour(place_id,response){
             console.log("Got a response: ", JSON.stringify(JSONResponse));
 
             if(JSONResponse['result']){
-            var weekday_text = JSONResponse['result']['opening_hours']['weekday_text'];
+            var periods = JSONResponse['result']['opening_hours']['periods'];
 
+            var openHourList = [7];
 
+            for(var i=0;i<periods.length;i++){
+                var open =  periods[i]['open']['time'];
+                var close =  periods[i]['close']['time'];
+                var day =  periods[i]['open']['day'];
+                openHourList[day] = open +"-"+ close;
+            }
 
-            weekday_text?response.send(weekday_text):response.send("No Result");
+            response.send(openHourList);
 
 
             }else{
