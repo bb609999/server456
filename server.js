@@ -15,7 +15,9 @@ var async = require('async');
 
 var url = "mongodb://bb609999:pkpk1234@ds139884.mlab.com:39884/bb609999";
 
-var APIKEY = "AIzaSyC-uFuq2rGcGB34hLLeHtZBPF92B5UtCOI"
+var APIKEY = "AIzaSyC-uFuq2rGcGB34hLLeHtZBPF92B5UtCOI";
+
+var PLACEKEY = "AIzaSyD-c-wW_9lHHpdBBCUJF1_EfLYk4an0zJA";
 
 // Middleware that serves static files in the public folder
 // GET /index.html
@@ -156,6 +158,74 @@ app.get('/api/place/openinghour', function(req, res) {
 
 
 });
+
+app.get('/api/place/bestroute', function(req, res) {
+    console.log("/api");
+
+    var query = req.query.place;
+
+    if(query==null){
+        res.send("No Result");
+    }
+
+    var latlngs = query.split("|");
+
+    console.log(latlngs.length);
+
+    if(latlngs.length<=1){
+        res.send("No Result");
+    }
+
+
+
+
+
+    async.waterfall([
+        function(callback) {
+            bestroute(latlngs,res);
+
+            callback(null, "place_id");
+        },
+        function(arg1, callback) {
+            // arg1 现在是 'one'， arg2 现在是 'two' 
+            console.log(arg1);
+            callback(null, "two");
+        },
+        function(arg1, callback) {
+            // arg1 现在是 'three' 
+            console.log(arg1);
+            callback(null, "three");
+        }
+    ], function (err, result) {
+        console.log(result);
+        //执行的任务中方法回调err参数时，将被传递至本方法的err参数
+        // 参数result为最后一个方法的回调结果'done'     
+    });
+    
+
+
+
+});
+
+
+app.get('/findplace', function(req,res) {
+    console.log("/findplace");
+    
+    MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        findPlaces(db, function(place) {
+            db.close();
+            //
+            // process returned documents
+            //
+            res.json(place);
+
+
+        });
+    });
+    
+    
+  });
 
 
 app.get('/insert', function(req,res) {
@@ -493,3 +563,44 @@ function getOpeningHour(place_id,response){
          console.log("Got an error: ", e);
     }).end();
 }
+
+function bestroute(latlngs,response){
+    var address = "https://maps.googleapis.com/maps/api/directions/json?origin=";
+
+    address += latlngs[0]+"&destination="+latlngs[0]+"&waypoints=optimize:true|";
+
+    for(var i =1;i<latlngs.length;i++){
+        address += latlngs[i]+"|";
+    }
+
+    if(address.substring(address.length-1)=="|"){
+        address = address.substring(0,address.length);
+    }
+
+    address+="&mode=transit&key="+PLACEKEY;
+
+
+    console.log(address);
+
+    response.send(address);
+}
+
+function findPlaces(db, callback) {
+        var places = []
+        var cursor = db.collection('places').find();     //加criteria {"name":"value"}  
+        cursor.each(function(err, doc) {
+            
+            assert.equal(err, null);
+    
+            if (doc != null) {
+                console.dir(doc); //check process all or not
+                places.push(doc);
+    
+            } else {
+                callback(places);
+            }
+        });
+      }
+    
+
+
