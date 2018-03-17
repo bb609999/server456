@@ -540,7 +540,7 @@ function getOpeningHour(place_id,response){
             if(JSONResponse['result']['opening_hours']){
             var periods = JSONResponse['result']['opening_hours']['periods'];
 
-            var openHourList = [7];
+            var openHourList = [];
 
             for(var i=0;i<periods.length;i++){
                 var open =  periods[i]['open']['time'];
