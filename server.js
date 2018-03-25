@@ -207,6 +207,46 @@ app.get('/api/place/bestroute', function(req, res) {
 
 });
 
+app.get('/api/place/simpleroute', function(req, res) {
+    console.log("/api/place/simpleroute");
+
+    var reqPOIS = req.query.loc;
+    console.log(reqPOIS);
+
+    var latlngs = reqPOIS.split("|");
+
+    if(latlngs.length<=2){
+        res.send("No Result");
+    }
+
+
+    async.waterfall([
+        function(callback) {
+            simpleroute(latlngs,res);
+
+            callback(null, "place_id");
+        },
+        function(arg1, callback) {
+            // arg1 现在是 'one'， arg2 现在是 'two' 
+            console.log(arg1);
+            callback(null, "two");
+        },
+        function(arg1, callback) {
+            // arg1 现在是 'three' 
+            console.log(arg1);
+            callback(null, "three");
+        }
+    ], function (err, result) {
+        console.log(result);
+        //执行的任务中方法回调err参数时，将被传递至本方法的err参数
+        // 参数result为最后一个方法的回调结果'done'     
+    });
+    
+
+
+
+});
+
 
 app.get('/findplace', function(req,res) {
     console.log("/findplace");
@@ -601,6 +641,60 @@ function findPlaces(db, callback) {
             }
         });
       }
+
+
+function simpleroute(POIS,response){
+    var address = "https://maps.googleapis.com/maps/api/directions/json?origin="+POIS[0]+"&destination="+POIS[POIS.length-1]+"&waypoints=";
+
+    for(i=1;i<POIS.length-1;i++){
+        address += POIS[i] + "|";
+    }
+    
+    address += "&key="+APIKEY;
+
+    console.log(address);
+
+    var req = https.get(address, function(res){
+        
+        var body = '';
+    
+        res.on('data', function(chunk){
+            console.log("Doing");
+            body += chunk;
+    
+        });
+        res.on('end', function(){
+
+            console.log("Got a response: ",body);
+
+            var JSONResponse = JSON.parse(body);
+            
+            console.log("Got a response: ", JSON.stringify(JSONResponse));
+
+            var durationList = [];
+
+            
+            var legs = JSONResponse['routes'][0]['legs'];
+
+            for(var i=0;i<legs.length;i++){
+                durationList[i] = legs[i]['duration']['value'];
+            }
+
+            response.send(durationList);
+
+           
+
+            
+
+            
+
+
+        });
+    }).on('error', function(e){ 
+         console.log("Got an error: ", e);
+    }).end();
+
+}
     
 
 
