@@ -109,8 +109,6 @@ app.get('/api/place/openinghour', function(req, res) {
     var lng = req.query.lng;
     console.log(req);
 
-    
-
   //  var keyword = "孫中山紀念館";
   //  var lat = 22.2819842;
  //   var lng = 114.150816;
@@ -126,32 +124,22 @@ app.get('/api/place/openinghour', function(req, res) {
     });
 
 
-
     async.waterfall([
         function(callback) {
-         //var place_id = accessOpenHourApi(keyword,lat,lng,res);
-
-         //setTimeout(getOpeningHour(place_id),3000);
-
         accessOpenHourApi(keyword,lat,lng,res);
-
 
             callback(null, "place_id");
         },
         function(arg1, callback) {
-            // arg1 现在是 'one'， arg2 现在是 'two' 
             console.log(arg1);
             callback(null, "two");
         },
         function(arg1, callback) {
-            // arg1 现在是 'three' 
             console.log(arg1);
             callback(null, "three");
         }
     ], function (err, result) {
         console.log(result);
-        //执行的任务中方法回调err参数时，将被传递至本方法的err参数
-        // 参数result为最后一个方法的回调结果'done'     
     });
     
 
@@ -506,11 +494,7 @@ function accessOpenHourApi(keyword,lat,lng,response){
 
     console.log(address);
 
-
   var address_encoded = encodeURI(address);
-
-
-
 
     var req = https.get(address_encoded, function(res){
         
@@ -580,16 +564,18 @@ function getOpeningHour(place_id,response){
             if(JSONResponse['result']['opening_hours']){
             var periods = JSONResponse['result']['opening_hours']['periods'];
 
-            var openHourList = [];
+            var JSON_Response = {};
+            JSON_Response['OpeningHour'] = [];
 
             for(var i=0;i<periods.length;i++){
                 var open =  periods[i]['open']['time'];
                 var close =  periods[i]['close']['time'];
                 var day =  periods[i]['open']['day'];
-                openHourList[day] = open +"-"+ close;
+                JSON_Response['OpeningHour'].push(open +"-"+ close);
             }
 
-            response.send(openHourList);
+        
+            response.send(JSON_Response);
 
 
             }else{
