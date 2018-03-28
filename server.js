@@ -374,6 +374,10 @@ function accessDistanceApi(response, pathlist, POIS) {
 
             var durationValues = getDurationFromApi(JSONResponse);
 
+            if(!durationValues){
+                response.send("No Result");
+            }
+
             console.log("Got a response durationValues: ", durationValues);
 
 
