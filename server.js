@@ -15,7 +15,7 @@ var async = require('async');
 
 var url = "mongodb://bb609999:pkpk1234@ds139884.mlab.com:39884/bb609999";
 
-var APIKEY = "AIzaSyC-uFuq2rGcGB34hLLeHtZBPF92B5UtCOI";
+var APIKEY = "AIzaSyALOltwavRHEznPgnu9g2O3HyJ1c3kE4jk";
 
 var PLACEKEY = "AIzaSyD-c-wW_9lHHpdBBCUJF1_EfLYk4an0zJA";
 
@@ -356,7 +356,6 @@ function accessDistanceApi(response, pathlist, POIS) {
 
     url += '&mode=transit&key=' + APIKEY;
 
-
     var req = https.get(url, function (res) {
         var body = '';
 
@@ -370,13 +369,15 @@ function accessDistanceApi(response, pathlist, POIS) {
 
             var JSONResponse = JSON.parse(body);
 
+            if(JSONResponse['error_message']){
+                response.send("No Result");
+            }
+
             console.log("Got a response: ", JSON.stringify(JSONResponse));
 
             var durationValues = getDurationFromApi(JSONResponse);
 
-            if(!durationValues){
-                response.send("No Result");
-            }
+            
 
             console.log("Got a response durationValues: ", durationValues);
 
